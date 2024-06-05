@@ -49,10 +49,10 @@ class Todo {
     // }
   }
 
-  // @override
-  // toString() {
-  //   return 'todo is: $title, $description, $date, $startTime, $endTime, $isFinished, $isStar, $priority';
-  // }
+  @override
+  toString() {
+    return 'todo is: $title, $description, $date, $startTime, $endTime, $isFinished, $isStar, $priority';
+  }
 
   static const Uuid _uuid = Uuid();
 
@@ -147,10 +147,8 @@ class TodoStatus {
   /// 下面定义了允许用户使用的4个枚举值
   static const TodoStatus unspecified =
       TodoStatus._(0, '未安排', Color(0xff8c88ff));
-  static const TodoStatus finished =
-      TodoStatus._(1, '已完成', Color(0xff51d2c2));
-  static const TodoStatus delay =
-      TodoStatus._(2, '已延期', Color(0xffffb258));
+  static const TodoStatus finished = TodoStatus._(1, '已完成', Color(0xff51d2c2));
+  static const TodoStatus delay = TodoStatus._(2, '已延期', Color(0xffffb258));
 
   static const List<TodoStatus> values = [
     unspecified,

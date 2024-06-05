@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:todos/const/route_argument.dart';
+import 'package:todos/extension/date_time.dart';
 // import 'package:todos/extension/date_time.dart';
 import 'package:todos/model/todo.dart';
 import 'package:todos/model/todoList.dart';
@@ -28,17 +29,30 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   void initState() {
     super.initState();
-    _todoList = context.read<TodoList>();
-    _initDate2TodoMap();
-    _todoList.addListener(_updateData);
+    _todoList = Provider.of<TodoList>(context, listen: false);
+    // debugPrint('日历, ${_todoList.length}');
     // _calendarController = CalendarController();
     // _initialDay = DateTime.now().dayTime;
     _focusedDay = ValueNotifier(DateTime.now());
-    _selectedDay = ValueNotifier(null);
-    // _selectedDay.addListener(() {
-    //   // 更新为当前选中日期对应的事件(Todo列表);
-    //   _todosToShow = _date2TodoMap.cast<Todo>();
-    // });
+    _selectedDay = ValueNotifier(DateTime.now());
+
+    _initDate2TodoMap();
+    _todoList.addListener(_updateData);
+    _selectedDay.addListener(() {
+      // 更新为当前选中日期对应的事件(Todo列表);
+      _todosToShow.clear();
+      _todosToShow.addAll(_date2TodoMap[_selectedDay.value!.dayTime] ?? []);
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+
+    _todoList = Provider.of(context, listen: false);
+    _todoList.removeListener(_updateData);
+    _todoList.addListener(_updateData);
   }
 
   @override
@@ -60,10 +74,14 @@ class _CalendarPageState extends State<CalendarPage> {
 
   void _initDate2TodoMap() {
     for (var todo in _todoList.list) {
+      // 如果todo.date不存在，则使用() => []生成新的值为空数组
       _date2TodoMap.putIfAbsent(todo.date, () => []);
       _date2TodoMap[todo.date]?.add(todo);
+      debugPrint('todo date: ${todo.date}');
+      debugPrint('focusedDay: ${_focusedDay.value.dayTime}');
     }
-    _todosToShow.addAll(_date2TodoMap[_focusedDay.value] ?? []);
+    _todosToShow.addAll(_date2TodoMap[_focusedDay.value.dayTime] ?? []);
+    debugPrint('_todosToShow ${_todosToShow.length}');
   }
 
   void _onTap(Todo todo) async {
@@ -89,7 +107,12 @@ class _CalendarPageState extends State<CalendarPage> {
             calendarFormat: _calendarFormat,
             // calendarController: _calendarController,
             locale: 'zh_CN',
+            selectedDayPredicate: (day) {
+              return isSameDay(_selectedDay.value, day);
+            },
             onDaySelected: (selectedDay, focusedDay) {
+              debugPrint(
+                  'selectedDay is $selectedDay, focusedDay is $focusedDay');
               setState(() {
                 _selectedDay.value = selectedDay;
                 _focusedDay.value =

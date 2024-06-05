@@ -26,7 +26,7 @@ class _ReporterPageState extends State<ReporterPage> {
   @override
   void initState() {
     super.initState();
-    _todoList = context.read<TodoList>();
+    _todoList = Provider.of<TodoList>(context, listen: false);
     _initTodosOfThisMonth();
     _todoList.addListener(_updateData);
   }
@@ -86,6 +86,7 @@ class _ReporterPageState extends State<ReporterPage> {
         children: <Widget>[
           SizedBox(
             height: 60,
+            width: 320,
             child: ScrollOptionView(
               options: const [
                 '1月',

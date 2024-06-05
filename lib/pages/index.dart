@@ -15,14 +15,16 @@ class IndexPage extends StatefulWidget {
   const IndexPage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _IndexPageState createState() => _IndexPageState();
 }
 
 class _IndexPageState extends State<IndexPage> {
   int currentIndex = 0;
   List<Widget> pages = [];
-  TodoList? todoList;
+  late TodoList todoList;
   String userKey = '';
+  // 获取TODOListPageState，用来操作state
   GlobalKey<TodoListPageState> todoListPageState =
       GlobalKey<TodoListPageState>();
 
@@ -30,28 +32,51 @@ class _IndexPageState extends State<IndexPage> {
   void initState() {
     super.initState();
     currentIndex = 0;
-    pages = <Widget>[
-      TodoListPage(key: todoListPageState),
-      const CalendarPage(),
-      Container(),
-      const ReporterPage(),
-      const AboutPage()
-    ];
+    todoList = TodoList('');
+    // pages = <Widget>[
+    //   TodoListPage(key: todoListPageState),
+    //   const CalendarPage(),
+    //   Container(),
+    //   const ReporterPage(),
+    //   const AboutPage()
+    // ];
   }
 
   @override
-  void didChangeDependencies() {
+  void didChangeDependencies() async {
     super.didChangeDependencies();
-    TodoEntryArgument arguments =
-        ModalRoute.of(context)?.settings.arguments as TodoEntryArgument;
-    String userKey = arguments.userKey;
-    todoList = TodoList(userKey);
+    await _checkLogin();
+    String? userKey = await UserInfo.instance().getLoginKey();
+    // TodoEntryArgument? arguments =
+    //     ModalRoute.of(context)?.settings.arguments as TodoEntryArgument?;
+    // if (arguments == null && userKey == null) {
+    //   await Navigator.of(context).pushReplacementNamed(LOGIN_PAGE_URL);
+    // } else {
+    //   String userKey = userKey;
+    //   todoList = TodoList(userKey);
+    // }
+    if (userKey == null) {
+      await Navigator.of(context).pushReplacementNamed(LOGIN_PAGE_URL);
+    } else {
+      setState(() {
+        todoList = TodoList(userKey);
+        pages = <Widget>[
+          TodoListPage(key: todoListPageState),
+          const CalendarPage(),
+          Container(),
+          const ReporterPage(),
+          const AboutPage()
+        ];
+      });
+    }
   }
 
-  BottomNavigationBarItem _buildBottomNavigationBarItem(String imagePath,
+  BottomNavigationBarItem _buildBottomNavigationBarItem(
+      String itemName, String imagePath,
       {double? size, bool singleImage = false}) {
     if (singleImage) {
       return BottomNavigationBarItem(
+        label: '',
         icon: Image(width: size, height: size, image: AssetImage(imagePath)),
       );
     }
@@ -59,7 +84,8 @@ class _IndexPageState extends State<IndexPage> {
         ImageIcon(AssetImage(imagePath), size: size, color: activeTabIconColor);
     ImageIcon inactiveIcon = ImageIcon(AssetImage(imagePath),
         size: size, color: inactiveTabIconColor);
-    return BottomNavigationBarItem(activeIcon: activeIcon, icon: inactiveIcon);
+    return BottomNavigationBarItem(
+        label: itemName, activeIcon: activeIcon, icon: inactiveIcon);
   }
 
   void _onTabChange(int index) async {
@@ -82,16 +108,20 @@ class _IndexPageState extends State<IndexPage> {
   // 检查是否登录
   Future<void> _checkLogin() async {
     String? userInfoKey = await UserInfo.instance().getLoginKey();
+    debugPrint('userInfoKey : $userInfoKey');
     if (userInfoKey == null) {
-      Navigator.of(context).pushReplacementNamed(LOGIN_PAGE_URL);
+      await Navigator.of(context).pushReplacementNamed(LOGIN_PAGE_URL);
     }
+    // if (userInfoKey != null) {
+    //   print('todolist remove all');
+    //   todoList.removeAll();
+    // }
   }
 
   @override
   Widget build(BuildContext context) {
-    _checkLogin();
     return ChangeNotifierProvider<TodoList>.value(
-        value: todoList!,
+        value: todoList,
         child: Provider(
           create: (BuildContext context) => userKey,
           // create: (BuildContext context) => TodoList(generateTodos(3)),
@@ -102,12 +132,13 @@ class _IndexPageState extends State<IndexPage> {
                 currentIndex: currentIndex,
                 type: BottomNavigationBarType.fixed,
                 items: <BottomNavigationBarItem>[
-                  _buildBottomNavigationBarItem('assets/images/lists.png'),
-                  _buildBottomNavigationBarItem('assets/images/calendar.png'),
-                  _buildBottomNavigationBarItem('assets/images/add.png',
+                  _buildBottomNavigationBarItem('', 'assets/images/lists.png'),
+                  _buildBottomNavigationBarItem(
+                      '', 'assets/images/calendar.png'),
+                  _buildBottomNavigationBarItem('', 'assets/images/add.png',
                       size: 50, singleImage: true),
-                  _buildBottomNavigationBarItem('assets/images/report.png'),
-                  _buildBottomNavigationBarItem('assets/images/about.png')
+                  _buildBottomNavigationBarItem('', 'assets/images/report.png'),
+                  _buildBottomNavigationBarItem('', 'assets/images/about.png')
                 ]),
           ),
         ));

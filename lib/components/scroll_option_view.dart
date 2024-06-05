@@ -9,20 +9,19 @@ class ScrollOptionView extends StatefulWidget {
   final List<String> options;
   final OptionItemViewBuilder? itemBuilder;
   final OptionItemViewBuilder? activeItemBuilder;
-  final OptionChanged? onOptionChanged;
+  final OptionChanged onOptionChanged;
   final int activeIndex;
 
-  const ScrollOptionView({
+  ScrollOptionView({
     super.key,
     required this.options,
     this.itemBuilder,
     this.activeItemBuilder,
-    this.onOptionChanged,
+    required this.onOptionChanged,
     this.activeIndex = 0,
   });
 
   @override
-  // ignore: library_private_types_in_public_api
   _ScrollOptionViewState createState() => _ScrollOptionViewState();
 }
 
@@ -42,8 +41,10 @@ class _ScrollOptionViewState extends State<ScrollOptionView> {
 
     if (oldWidget.activeIndex != widget.activeIndex) {
       _activeIndex = _getSafeActiveIndex(widget.activeIndex);
-      widget.onOptionChanged!(
+      // if (widget.onOptionChanged != null) {
+      widget.onOptionChanged(
           context, widget.options[_activeIndex], _activeIndex);
+      // }
     }
   }
 
@@ -71,18 +72,44 @@ class _ScrollOptionViewState extends State<ScrollOptionView> {
   Widget _buildRow(BuildContext context, String option, int index) {
     Widget content;
     if (_activeIndex == index) {
-      content = widget.activeItemBuilder!(context, option, index);
+      if (widget.activeItemBuilder != null) {
+        content = widget.activeItemBuilder!(context, option, index);
+      } else {
+        content = Container(
+          alignment: Alignment.center,
+          padding: const EdgeInsets.fromLTRB(30, 5, 30, 5),
+          margin: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            border: Border.all(color: Color(0xffebebec)),
+            color: const Color(0xffb6b6b8),
+          ),
+          child: Text(option),
+        );
+      }
     } else {
-      content = widget.itemBuilder!(context, option, index);
+      if (widget.itemBuilder != null) {
+        content = widget.itemBuilder!(context, option, index);
+      } else {
+        content = Container(
+            alignment: Alignment.center,
+            padding: const EdgeInsets.fromLTRB(30, 10, 30, 10),
+            margin: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              border: Border.all(color: Color(0xffebebec)),
+            ),
+            child: Text(option));
+      }
     }
 
     return GestureDetector(
       child: content,
       onTap: () {
-        setState(() {
+        this.setState(() {
           _activeIndex = index;
         });
-        widget.onOptionChanged!(context, option, index);
+        // if (widget.onOptionChanged != null) {
+        widget.onOptionChanged(context, option, index);
+        // }
       },
     );
   }

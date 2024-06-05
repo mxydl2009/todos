@@ -13,7 +13,7 @@ class AboutPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('关于')),
+      appBar: AppBar(automaticallyImplyLeading: false, title: const Text('关于')),
       body: Center(
         child: Column(
           children: <Widget>[

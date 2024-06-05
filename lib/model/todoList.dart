@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+// import 'package:todos/extension/date_time.dart';
 import 'package:todos/model/todo.dart';
 import 'package:todos/utils/db_provider.dart';
 
@@ -22,8 +23,8 @@ class TodoListChangeInfo {
 
 const emptyTodoListChangeInfo = TodoListChangeInfo();
 
-class TodoList extends ValueNotifier<TodoListChangeInfo> {
-// class TodoList extends ChangeNotifier {
+// class TodoList extends ValueNotifier<TodoListChangeInfo> {
+class TodoList extends ChangeNotifier {
   final List<Todo> _todoList = [];
   // List<Todo> _todoList;
   late DbProvider _dbProvider;
@@ -32,11 +33,14 @@ class TodoList extends ValueNotifier<TodoListChangeInfo> {
   // TodoList(this._todoList) {
   //   _sort();
   // }
-  TodoList(this.userKey) : super(emptyTodoListChangeInfo) {
+  // TodoList(this.userKey) : super(emptyTodoListChangeInfo) {
+  TodoList(this.userKey) : super() {
+    if (userKey == '') return;
     _dbProvider = DbProvider(userKey);
     _dbProvider.loadFromDataBase().then((List<Todo> todoList) async {
       if (todoList.isNotEmpty) {
         for (var e in todoList) {
+          debugPrint('database todolist todo: ${e.toString()} \n');
           add(e);
         }
       }
@@ -50,14 +54,18 @@ class TodoList extends ValueNotifier<TodoListChangeInfo> {
   void add(Todo todo) {
     _todoList.add(todo);
     _sort();
-    int index = _todoList.indexOf(todo);
+    // int index = _todoList.indexOf(todo);
     _dbProvider.add(todo);
-    value = TodoListChangeInfo(
-      insertOrRemoveIndex: index,
-      type: TodoListChangeType.Insert,
-      todoList: list,
-    );
-    // notifyListeners();
+    // value = TodoListChangeInfo(
+    //   insertOrRemoveIndex: index,
+    //   type: TodoListChangeType.Insert,
+    //   todoList: list,
+    // );
+    notifyListeners();
+  }
+
+  void removeAll() async {
+    await _dbProvider.removeAll();
   }
 
   void remove(String id) {
@@ -67,24 +75,24 @@ class TodoList extends ValueNotifier<TodoListChangeInfo> {
     //   return;
     // }
     int index = _todoList.indexOf(todo);
-    List<Todo> clonedList = List.from(_todoList);
+    // List<Todo> clonedList = List.from(_todoList);
     _todoList.removeAt(index);
     _dbProvider.remove(todo);
-    value = TodoListChangeInfo(
-      insertOrRemoveIndex: index,
-      type: TodoListChangeType.Delete,
-      todoList: clonedList,
-    );
-    // notifyListeners();
+    // value = TodoListChangeInfo(
+    //   insertOrRemoveIndex: index,
+    //   type: TodoListChangeType.Delete,
+    //   todoList: clonedList,
+    // );
+    notifyListeners();
   }
 
   void update(Todo todo) {
     _sort();
     _dbProvider.update(todo);
-    value = TodoListChangeInfo(
-      type: TodoListChangeType.Update,
-      todoList: list,
-    );
+    // value = TodoListChangeInfo(
+    //   type: TodoListChangeType.Update,
+    //   todoList: list,
+    // );
     notifyListeners();
   }
 
@@ -121,6 +129,10 @@ class TodoList extends ValueNotifier<TodoListChangeInfo> {
       return a.endTime.hour - b.endTime.hour;
     });
 
-    // notifyListeners();
+    notifyListeners();
+  }
+
+  bool isNotEmpty() {
+    return _todoList.isNotEmpty;
   }
 }

@@ -3,6 +3,7 @@ import 'package:todos/routes.dart';
 import 'package:todos/components/fractionally_sized_transition.dart';
 import 'package:todos/components/image_hero.dart';
 import 'package:todos/utils/data_store.dart';
+import 'package:todos/const/route_argument.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -67,12 +68,16 @@ class _LoginPageState extends State<LoginPage>
     String password = _passwordController.text;
     bool success = await UserInfo.instance().login(phone, password);
 
-    debugPrint('login success $success');
+    String? registerKey = await UserInfo.instance().getRegisterKey();
+
+    debugPrint('login success $success, registerKey $registerKey');
     if (success) {
       setState(() {
         useHero = false;
       });
-      await Navigator.of(context).pushReplacementNamed(INDEX_PAGE_URL);
+      String userKey = await UserInfo.instance().getLoginKey() as String;
+      await Navigator.of(context).pushReplacementNamed(INDEX_PAGE_URL,
+          arguments: TodoEntryArgument(userKey));
     } else {
       debugPrint('login fail, should clear textfield $success');
       // 提示登录信息有误
@@ -180,7 +185,7 @@ class _LoginPageState extends State<LoginPage>
                                     padding: const EdgeInsets.only(
                                         left: 0, right: 0, top: 24, bottom: 12),
                                     child: Container(
-                                      child: ElevatedButton(
+                                      child: FilledButton(
                                         child: const Text('登录'),
                                         // color: const Color(0xFF9BB2E0),
                                         onPressed: canLogin == true

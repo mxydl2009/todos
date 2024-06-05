@@ -62,9 +62,17 @@ class UserInfo {
   Future<String?> getLoginKey() async {
     await _initSharedPreferences();
     if (_sharedPreferences!.containsKey(loginPreferenceKey)) {
-      return _sharedPreferences?.getString(loginPreferenceKey);
+      return _sharedPreferences!.getString(loginPreferenceKey)!;
     }
-    return '';
+    return null;
+  }
+
+  Future<String?> getRegisterKey() async {
+    await _initSharedPreferences();
+    if (_sharedPreferences!.containsKey(phonePreferenceKey)) {
+      return _sharedPreferences!.getString(phonePreferenceKey)!;
+    }
+    return null;
   }
 
   // 登出

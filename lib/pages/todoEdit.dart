@@ -7,6 +7,7 @@ import 'package:todos/const/route_argument.dart';
 import 'package:todos/model/todo.dart';
 import 'package:todos/extension/date_time.dart';
 import 'package:todos/extension/time_of_day.dart';
+import 'package:todos/routes.dart';
 
 class _OpenTypeConfig {
   final String title;
@@ -32,6 +33,7 @@ class TodoEditPage extends StatefulWidget {
 }
 
 class _TodoEditPageState extends State<TodoEditPage> {
+  bool isInitByRoute = false;
   OpenType _openType = OpenType.Preview;
   Todo? _todo;
   late Map<OpenType, _OpenTypeConfig> _openTypeConfigMap;
@@ -61,8 +63,8 @@ class _TodoEditPageState extends State<TodoEditPage> {
   @override
   void initState() {
     super.initState();
-
-    _todo = _todo ?? Todo(date: DateTime.now().dayTime);
+    debugPrint('TodoEdit page initState');
+    _todo = Todo(date: DateTime.now().dayTime);
 
     _openTypeConfigMap = {
       OpenType.Preview: _OpenTypeConfig('查看待办事项', Icons.edit, _edit),
@@ -86,12 +88,22 @@ class _TodoEditPageState extends State<TodoEditPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    EditTodoPageArgument arguments =
-        ModalRoute.of(context)!.settings.arguments as EditTodoPageArgument;
-    _openType = arguments.openType;
-    print(arguments.todo);
-    _todo = arguments.todo ?? Todo(date: DateTime.now().dayTime);
+    debugPrint('didChangeDependencies called, ');
+    if (!isInitByRoute) {
+      // TODO: arguments在创建TODO时如何带上的？
+      EditTodoPageArgument? arguments =
+          ModalRoute.of(context)!.settings.arguments as EditTodoPageArgument?;
+      if (arguments == null) {
+        _openType = OpenType.Add;
+      } else {
+        _openType = arguments.openType;
+      }
 
+      debugPrint('arguments todo is : ${arguments?.openType}');
+      _todo = arguments?.todo ?? _todo;
+    }
+
+    isInitByRoute = true;
     _dateTextEditingController.text = _todo!.date.dateString;
     _startTimeTextEditingController.text = _todo!.startTime.timeString;
     _endTimeTextEditingController.text = _todo!.endTime.timeString;
@@ -154,7 +166,7 @@ class _TodoEditPageState extends State<TodoEditPage> {
       padding: _labelPadding,
       child: TimeFieldGroup(
         onSelect: onSelect,
-        initialTime: initialValue ?? TimeOfDay(hour: 0, minute: 0),
+        initialTime: initialValue ?? const TimeOfDay(hour: 0, minute: 0),
         child: TextFormField(
           validator: (value) {
             if (value == null) {
@@ -258,7 +270,7 @@ class _TodoEditPageState extends State<TodoEditPage> {
                       controller: _dateTextEditingController,
                       onSelect: (value) {
                     _todo!.date = value.dayTime;
-                    _dateTextEditingController.text = _todo!.date.dateString;
+                    // _dateTextEditingController.text = _todo!.date.dateString;
                   }),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -270,8 +282,8 @@ class _TodoEditPageState extends State<TodoEditPage> {
                               onSelect: (value) {
                         if (value != null) {
                           _todo!.startTime = value;
-                          _startTimeTextEditingController.text =
-                              _todo!.startTime.timeString;
+                          // _startTimeTextEditingController.text =
+                          //     _todo!.startTime.timeString;
                         }
                       })),
                       Expanded(
@@ -281,8 +293,8 @@ class _TodoEditPageState extends State<TodoEditPage> {
                             onSelect: (value) {
                           if (value != null) {
                             _todo!.endTime = value;
-                            _endTimeTextEditingController.text =
-                                _todo!.endTime.timeString;
+                            // _endTimeTextEditingController.text =
+                            //     _todo!.endTime.timeString;
                           }
                         }),
                       )
@@ -303,11 +315,11 @@ class _TodoEditPageState extends State<TodoEditPage> {
         leading: Builder(
           builder: (BuildContext context) {
             return IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black),
-              // TODO: 点击返回时，如果在编辑状态，应该根据是否表单项有变化来提醒用户当前正在编辑是否退出
-              // 目前是直接返回，而且编辑态更改了表单项，也会保存后退出
-              onPressed: () => Navigator.of(context).pop(),
-            );
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                // TODO: 点击返回时，如果在编辑状态，应该根据是否表单项有变化来提醒用户当前正在编辑是否退出
+                // 目前是直接返回，而且编辑态更改了表单项，也会保存后退出
+                onPressed: () =>
+                    Navigator.of(context).pushReplacementNamed(INDEX_PAGE_URL));
           },
         ),
         title: Text(

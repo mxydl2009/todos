@@ -14,7 +14,7 @@ create table $TABLE_NAME (
   $END_TIME text,
   $PRIORITY integer,
   $IS_FINISHED integer,
-  $IS_STAR integer,
+  $IS_STAR integer
 )
 ''';
 const String EDIT_TIME_KEY = 'todo_list_edit_timestamp';
@@ -41,6 +41,7 @@ class DbProvider {
       }
     }
     List<Map<String, dynamic>> dbRecords = await _database!.query(TABLE_NAME);
+    print('dbRecords: $dbRecords, length is ${dbRecords.length}');
     return dbRecords.map((item) => Todo.fromMap(item)).toList();
   }
 
@@ -60,6 +61,11 @@ class DbProvider {
       where: '$ID = ?',
       whereArgs: [todo.id],
     );
+  }
+
+  Future<int> removeAll() async {
+    _updateEditTime();
+    return _database!.delete(TABLE_NAME);
   }
 
   Future<int> update(Todo todo) async {
